@@ -1,2 +1,2 @@
 # ReinforcementLearning
-This repository contains my researches and works done in the field of Reinforcement Learning. 
+This repository contains the research and studies I have done/will do within the scope of my graduation thesis about Reinforcement Learning.
