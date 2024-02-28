@@ -33,7 +33,7 @@ class State:
     #Return 1 --> Computer wins
     #Return -1 --> Human wins.
     def winner(self):
-        # row
+        #Row
         for i in range(BOARD_ROWS):
             if sum(self.board[i, :]) == 4:
                 self.isEnd = True
@@ -41,7 +41,7 @@ class State:
             if sum(self.board[i, :]) == -4:
                 self.isEnd = True
                 return -1
-        # col
+        #Column
         for i in range(BOARD_COLS):
             if sum(self.board[:, i]) == 4:
                 self.isEnd = True
@@ -49,10 +49,14 @@ class State:
             if sum(self.board[:, i]) == -4:
                 self.isEnd = True
                 return -1
-        # diagonal
-        diag_sum1 = sum([self.board[i, i] for i in range(BOARD_COLS)])
-        diag_sum2 = sum([self.board[i, BOARD_COLS - i - 1] for i in range(BOARD_COLS)])
-        diag_sum = max(abs(diag_sum1), abs(diag_sum2))
+        #Diagonal 
+        for i in range(BOARD_ROWS-3):
+            for j in range(BOARD_COLS-3):
+                diagMatrix = self.board[i:i+4,j:j+4]
+                diag_sum1 = sum([diagMatrix[i,i] for i in range(4)])
+                diag_sum2 = sum([diagMatrix[i, 4 - i - 1] for i in range(4)])
+                diag_sum = max(abs(diag_sum1), abs(diag_sum2))
+
         if diag_sum == 4:
             self.isEnd = True
             if diag_sum1 == 4 or diag_sum2 == 4:
@@ -196,7 +200,7 @@ class State:
                     token = ' '
                 out += token + ' | '
             print(out)
-        print('-------------')
+        print('------------------------------')
 
 #Player class represents our agent.
 #Recording ands updating states-values after each game.
