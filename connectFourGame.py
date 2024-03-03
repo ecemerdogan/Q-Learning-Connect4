@@ -8,7 +8,7 @@ print("Current Working Directory:", os.getcwd())
 BOARD_ROWS = 6
 BOARD_COLS = 7
 
-# This class will be acting as board and judger in the game.
+# This class will act as a board and judger in the game.
 class State:
     def __init__(self, p1, p2):
         self.board = np.zeros((BOARD_ROWS, BOARD_COLS))
@@ -22,14 +22,14 @@ class State:
         # init p1 plays first
         self.playerSymbol = 1
 
-    # get unique hash of current board state
+    # get the unique hash of the current board state
     # The getHash function hashes the current board state so that it 
     # can be stored in the state-value dictionary.
     def getHash(self):
         self.boardHash = str(self.board.reshape(BOARD_COLS * BOARD_ROWS))
         return self.boardHash
 
-    #After each action taken by players, check the winner if the game is ended.
+    #After each action players take, check the winner if the game has ended.
     #Return 1 --> Computer wins
     #Return -1 --> Human wins.
     def winner(self):
@@ -53,16 +53,15 @@ class State:
         for i in range(BOARD_ROWS-3):
             for j in range(BOARD_COLS-3):
                 diagMatrix = self.board[i:i+4,j:j+4]
-                diag_sum1 = sum([diagMatrix[i,i] for i in range(4)])
-                diag_sum2 = sum([diagMatrix[i, 4 - i - 1] for i in range(4)])
+                diag_sum1 = np.sum(np.diag(diagMatrix))
+                diag_sum2 = np.sum(np.diag(diagMatrix[::-1]))
                 diag_sum = max(abs(diag_sum1), abs(diag_sum2))
-
-        if diag_sum == 4:
-            self.isEnd = True
-            if diag_sum1 == 4 or diag_sum2 == 4:
-                return 1
-            else:
-                return -1
+                if diag_sum == 4:
+                    self.isEnd = True
+                    if diag_sum1 == 4 or diag_sum2 == 4:
+                        return 1
+                    else:
+                        return -1
 
         # tie
         # no available positions
@@ -86,6 +85,10 @@ class State:
         self.board[position] = self.playerSymbol
         # switch to another player
         self.playerSymbol = -1 if self.playerSymbol == 1 else 1
+
+    # append a hash state
+    def addState(self, state):
+        self.states.append(state)
 
     # only when game ends
     def giveReward(self):
@@ -132,7 +135,6 @@ class State:
                     self.p2.reset()
                     self.reset()
                     break
-
                 else:
                     # Player 2
                     positions = self.availablePositions()
@@ -189,13 +191,13 @@ class State:
     def showBoard(self):
         # p1: x  p2: o
         for i in range(0, BOARD_ROWS):
-            print('-------------')
+            print('------------------------------')
             out = '| '
             for j in range(0, BOARD_COLS):
                 if self.board[i, j] == 1:
-                    token = 'x'
+                    token = 'B'
                 if self.board[i, j] == -1:
-                    token = 'o'
+                    token = 'R'
                 if self.board[i, j] == 0:
                     token = ' '
                 out += token + ' | '
@@ -206,7 +208,7 @@ class State:
 #Recording ands updating states-values after each game.
 class Player:
     #ϵ-greedy method is used to balance exploration and exploitation.
-    def __init__(self, name, exp_rate=0.3):
+    def __init__(self, name, exp_rate=0.01):
         self.name = name
         self.states = []  # record all positions taken
         self.lr = 0.2 # learning rate.
@@ -285,7 +287,16 @@ class HumanPlayer:
                 return action
             else:
                 print("Invalid action. Please choose a valid position.")
-                    
+    # append a hash state
+    def addState(self, state):
+        pass
+
+    # at the end of game, backpropagate and update states value
+    def feedReward(self, reward):
+        pass
+
+    def reset(self):
+        pass               
 
 if __name__ == "__main__":
     # training
