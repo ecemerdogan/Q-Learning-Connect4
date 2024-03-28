@@ -1,14 +1,18 @@
 # Reinforcement Learning Connect 4 Game with Epsilon Greedy Policy.
 # Each player has twenty-one discs.
 import numpy as np
+import time
 import pickle
 import os
-print("Current Working Directory:", os.getcwd())
+import math 
+import openpyxl
+
+print("Current Working Directory:", os.getcwd)
 
 BOARD_ROWS = 6
 BOARD_COLS = 7
 
-# This class will act as a board and judger in the game.
+# This class will be acting as board and judger in the game.
 class State:
     def __init__(self, p1, p2):
         self.board = np.zeros((BOARD_ROWS, BOARD_COLS))
@@ -17,68 +21,76 @@ class State:
         self.p2 = p2
         self.isEnd = False
         self.boardHash = None
-        # When a player takes an action playerSymbol will be filled
-        # in the board and the board state will be updated.
+        
+        # When a player takes an action playerSymbol will be filled in the board and the board state will be updated.
         # init p1 plays first
         self.playerSymbol = 1
 
-    # get the unique hash of the current board state
-    # The getHash function hashes the current board state so that it 
-    # can be stored in the state-value dictionary.
+    # get unique hash of current board state
+    # The getHash function hashes the current board state so that it can be stored in the state-value dictionary.
     def getHash(self):
         self.boardHash = str(self.board.reshape(BOARD_COLS * BOARD_ROWS))
         return self.boardHash
-
-    #After each action players take, check the winner if the game has ended.
+    
+    #After each action taken by players, check the winner if the game is ended.
     #Return 1 --> Computer wins
     #Return -1 --> Human wins.
     def winner(self):
-        #Row
+    # Check rows for a winner
         for i in range(BOARD_ROWS):
-            if sum(self.board[i, :]) == 4:
-                self.isEnd = True
-                return 1
-            if sum(self.board[i, :]) == -4:
-                self.isEnd = True
-                return -1
-        #Column
-        for i in range(BOARD_COLS):
-            if sum(self.board[:, i]) == 4:
-                self.isEnd = True
-                return 1
-            if sum(self.board[:, i]) == -4:
-                self.isEnd = True
-                return -1
-        #Diagonal 
-        for i in range(BOARD_ROWS-3):
-            for j in range(BOARD_COLS-3):
-                diagMatrix = self.board[i:i+4,j:j+4]
-                diag_sum1 = np.sum(np.diag(diagMatrix))
-                diag_sum2 = np.sum(np.diag(diagMatrix[::-1]))
-                diag_sum = max(abs(diag_sum1), abs(diag_sum2))
-                if diag_sum == 4:
+            for j in range(BOARD_COLS - 3):
+                if (self.board[i, j] == 1 and self.board[i, j + 1] == 1 and self.board[i, j + 2] == 1 and self.board[i, j + 3] == 1):
                     self.isEnd = True
-                    if diag_sum1 == 4 or diag_sum2 == 4:
-                        return 1
-                    else:
-                        return -1
+                    return 1
+                elif (self.board[i, j] == -1 and self.board[i, j + 1] == -1 and self.board[i, j + 2] == -1 and self.board[i, j + 3] == -1):
+                    self.isEnd = True
+                    return -1
+        
+        # Check columns for a winner
+        for i in range(BOARD_ROWS - 3):
+            for j in range(BOARD_COLS):
+                if (self.board[i, j] == 1 and self.board[i + 1, j] == 1 and self.board[i + 2, j] == 1 and self.board[i + 3, j] == 1):
+                    self.isEnd = True
+                    return 1
+                elif (self.board[i, j] == -1 and self.board[i + 1, j] == -1 and self.board[i + 2, j] == -1 and self.board[i + 3, j] == -1):
+                    self.isEnd = True
+                    return -1
+        
+        # Check diagonals for a winner (positive slope)
+        for i in range(BOARD_ROWS - 3):
+            for j in range(BOARD_COLS - 3):
+                if (self.board[i, j] == 1 and self.board[i + 1, j + 1] == 1 and self.board[i + 2, j + 2] == 1 and self.board[i + 3, j + 3] == 1):
+                    self.isEnd = True
+                    return 1
+                elif (self.board[i, j] == -1 and self.board[i + 1, j + 1] == -1 and self.board[i + 2, j + 2] == -1 and self.board[i + 3, j + 3] == -1):
+                    self.isEnd = True
+                    return -1
+        
+        # Check diagonals for a winner (negative slope)
+        for i in range(3, BOARD_ROWS):
+            for j in range(BOARD_COLS - 3):
+                if (self.board[i, j] == 1 and self.board[i - 1, j + 1] == 1 and self.board[i - 2, j + 2] == 1 and self.board[i - 3, j + 3] == 1):
+                    self.isEnd = True
+                    return 1
+                elif (self.board[i, j] == -1 and self.board[i - 1, j + 1] == -1 and self.board[i - 2, j + 2] == -1 and self.board[i - 3, j + 3] == -1):
+                    self.isEnd = True
+                    return -1
 
-        # tie
-        # no available positions
-        # situation: draw.
+        # Check for a tie
         if len(self.availablePositions()) == 0:
             self.isEnd = True
             return 0
-        # not end
+        
         self.isEnd = False
         return None
-
+       
     def availablePositions(self):
         positions = []
         for i in range(BOARD_ROWS):
             for j in range(BOARD_COLS):
                 if self.board[i, j] == 0:
-                    positions.append((i, j))  # need to be tuple
+                    if (i == BOARD_ROWS - 1 or (i!= BOARD_ROWS-1 and self.board[i+1,j]!=0)):
+                        positions.append((i, j))  # need to be tuple
         return positions
 
     def updateState(self, position):
@@ -115,78 +127,52 @@ class State:
     def play(self, rounds=100):
         for i in range(rounds):
             if i % 1000 == 0:
+                if os.path.exists("policy_p1"):
+                    print("Policy has been already saved!")
+                    break
                 print("Rounds {}".format(i))
+            self.current_player = self.p1
             while not self.isEnd:
-                # Player 1
                 positions = self.availablePositions()
-                p1_action = self.p1.chooseAction(positions, self.board, self.playerSymbol)
-                # take action and update board state
-                self.updateState(p1_action)
+                action_player = self.current_player.chooseAction(positions, self.board, self.playerSymbol)
+                self.updateState(action_player)
                 board_hash = self.getHash()
                 self.p1.addState(board_hash)
-                # check board status if it is end
-
                 win = self.winner()
                 if win is not None:
-                    # self.showBoard()
-                    # ended with p1 either win or draw
                     self.giveReward()
                     self.p1.reset()
                     self.p2.reset()
                     self.reset()
                     break
-                else:
-                    # Player 2
-                    positions = self.availablePositions()
-                    p2_action = self.p2.chooseAction(positions, self.board, self.playerSymbol)
-                    self.updateState(p2_action)
-                    board_hash = self.getHash()
-                    self.p2.addState(board_hash)
-
-                    win = self.winner()
-                    if win is not None:
-                        # self.showBoard()
-                        # ended with p2 either win or draw
-                        self.giveReward()
-                        self.p1.reset()
-                        self.p2.reset()
-                        self.reset()
-                        break
 
     # play with human
     def play2(self):
+        # Başlangıçta p1 ile başlayalım
+        self.current_player = self.p1
         while not self.isEnd:
-            # Player 1
             positions = self.availablePositions()
-            p1_action = self.p1.chooseAction(positions, self.board, self.playerSymbol)
-            # take action and upate board state
-            self.updateState(p1_action)
+            if self.current_player== self.p1:
+                action = self.current_player.chooseAction(positions, self.board, self.playerSymbol)
+            else:
+                action = self.current_player.chooseAction(positions)
+            
+            self.updateState(action)
             self.showBoard()
-            # check board status if it is end
             win = self.winner()
             if win is not None:
                 if win == 1:
-                    print(self.p1.name, "wins!")
+                    print(self.current_player.name, "wins!")
+                elif win == -1:
+                    print(self.current_player.name, "wins!")
                 else:
                     print("tie!")
+                self.current_player.reset()
                 self.reset()
-                break
+                return
+            # Bir sonraki oyuncuya geçiş yapalım
+            self.current_player = self.p2 if self.current_player == self.p1 else self.p1
 
-            else:
-                # Player 2
-                positions = self.availablePositions()
-                p2_action = self.p2.chooseAction(positions)
-
-                self.updateState(p2_action)
-                self.showBoard()
-                win = self.winner()
-                if win is not None:
-                    if win == -1:
-                        print(self.p2.name, "wins!")
-                    else:
-                        print("tie!")
-                    self.reset()
-                    break
 
     def showBoard(self):
         # p1: x  p2: o
@@ -208,11 +194,12 @@ class State:
 #Recording ands updating states-values after each game.
 class Player:
     #ϵ-greedy method is used to balance exploration and exploitation.
-    def __init__(self, name, exp_rate=0.01):
+    def __init__(self, name, exp_rate=1.0, min_exp_rate=0.01):
         self.name = name
         self.states = []  # record all positions taken
-        self.lr = 0.2 # learning rate.
+        self.lr = 0.1 # learning rate.
         self.exp_rate = exp_rate #ϵ: exp_rate.
+        self.min_exp_rate = min_exp_rate #Minimum exploration rate
         self.decay_gamma = 0.9 # discount factor.
         self.states_value = {}  # state -> value
 
@@ -222,12 +209,12 @@ class Player:
         return boardHash
 
     def chooseAction(self, positions, current_board, symbol):
-        if np.random.uniform(0, 1) <= self.exp_rate:
+        if np.random.uniform(0, 1) <= math.exp(-self.exp_rate):
             # take random action
             idx = np.random.choice(len(positions))
             action = positions[idx]
         else:
-            value_max = -999
+            value_max = -math.inf
             for p in positions:
                 next_board = current_board.copy()
                 next_board[p] = symbol
@@ -237,7 +224,10 @@ class Player:
                 if value >= value_max:
                     value_max = value
                     action = p
+
         # print("{} takes action {}".format(self.name, action))
+        # Decay exploration rate
+        self.exp_rate = max(self.min_exp_rate, self.exp_rate * self.decay_gamma)
         return action
 
     # append a hash state
@@ -299,13 +289,39 @@ class HumanPlayer:
         pass               
 
 if __name__ == "__main__":
+
+    # Record the current time before executing the code
+    start_time = time.time()
+
+    # Check if the file exists
+    file_path = "data.xlsx"
+    if os.path.exists(file_path):
+        # If the file exists, open it
+        workbook = openpyxl.load_workbook(file_path)
+        sheet = workbook.active
+    else:
+        # If the file doesn't exist, create a new workbook and sheet
+        workbook = openpyxl.Workbook()
+        sheet = workbook.active
+        # Add headers to the sheet
+        sheet['A1'] = "Learning Rate"
+        sheet['B1'] = "Exploration Rate"
+        sheet['C1'] = "Round Num"
+        sheet['D1'] = "Fail/Success"
+        sheet['E1'] = "Training Process in Sec."
+
     # training
+    roundNum =60000
     p1 = Player("p1")
     p2 = Player("p2")
     st = State(p1, p2)
     print("training...")
-    st.play(50000)
+    st.play(roundNum)
     p1.savePolicy()
+
+    # Record the current time after training process is over.
+    end_time = time.time()
+    elapsed_time = end_time - start_time
 
     # play with human
     p1 = Player("computer", exp_rate=0)
@@ -313,3 +329,26 @@ if __name__ == "__main__":
     p2 = HumanPlayer("human")
     st = State(p1, p2)
     st.play2()
+
+    # Load the rows count from a file if it exists
+    rows_file = "rows_count.txt"
+    if os.path.exists(rows_file):
+        with open(rows_file, "r") as f:
+            rows = int(f.read().strip())
+    else:
+        rows = 0
+
+    #Excel Table to Test
+    nextRow = rows + 1
+    print(nextRow)
+    sheet['A' + str(nextRow)] = p1.lr
+    sheet['B' + str(nextRow)] = p1.exp_rate 
+    sheet['C' + str(nextRow)] = roundNum
+ 
+    sheet['D' + str(nextRow)] = elapsed_time
+    workbook.save("data.xlsx")
+
+    # Save the updated rows count to the file
+    with open(rows_file, "w") as f:
+        f.write(str(rows))
+    
