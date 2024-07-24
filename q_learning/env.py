@@ -3,9 +3,6 @@
 import numpy as np
 import os
 
-
-print("Current Working Directory:", os.getcwd)
-
 BOARD_ROWS = 6
 BOARD_COLS = 7
 
@@ -21,7 +18,8 @@ class State:
         self.win = None
         self.number_of_move=0
         
-        # When a player takes an action playerSymbol will be filled in the board and the board state will be updated.
+        # When a player takes an action playerSymbol will be filled in the board and the board state 
+        # will be updated.
         # init p1 plays first
         self.playerSymbol = 1
 
@@ -137,12 +135,12 @@ class State:
             while not self.isEnd:
                 positions = self.availablePositions()
                 action_player = self.current_player.chooseAction(positions, self.board, self.playerSymbol)
-                self.updateState(action_player)
+                next_state=self.updateState(action_player)
                 board_hash = self.getHash()
                 self.p1.addState(board_hash)
                 win = self.winner()
                 if win is not None:
-                    self.giveReward()
+                    self.giveReward(next_state)
                     self.p1.reset()
                     self.p2.reset()
                     self.reset()
@@ -173,7 +171,7 @@ class State:
                 self.current_player.reset()
                 self.reset()
                 return
-            # Bir sonraki oyuncuya geçiş yapalım
+            # Let's switch to the next player.
             self.current_player = self.p2 if self.current_player == self.p1 else self.p1
 
 

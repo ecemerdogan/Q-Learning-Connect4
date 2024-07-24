@@ -20,7 +20,7 @@ sheet['A1'] = "Learning Rate"
 sheet['B1'] = "Exploration Rate"
 sheet['C1'] = "Round Num"
 sheet['D1'] = "Fail/Success/Draw"
-sheet['E1'] = "Number of moves made by Computer (Until the game is over.)"
+sheet['E1'] = "Number of moves made by Computer"
 
 # training
 roundNum =80000
@@ -70,7 +70,6 @@ sheet['C' + str(nextRow)] = roundNum
 sheet['D' + str(nextRow)] = result
 sheet['E' + str(nextRow)] = st.number_of_move
 workbook.save("data.xlsx")
-
 # Save the updated rows count to the file
 with open(rows_file, "w") as f:
     f.write(str(rows))

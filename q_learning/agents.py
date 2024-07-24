@@ -8,7 +8,7 @@ import os
 #Recording and updating states-values after each game.
 class ComputerPlayer:
     #ϵ-greedy method is used to balance exploration and exploitation.
-    def __init__(self, name, exp_rate=1.0, min_exp_rate=0.01):
+    def __init__(self, name, exp_rate=1.0, min_exp_rate=0.001):
         self.name = name
         self.states = []  # record all positions taken
         self.lr = 0.3 # learning rate.
@@ -32,8 +32,8 @@ class ComputerPlayer:
             for p in positions:
                 next_board = current_board.copy()
                 next_board[p] = symbol
-                next_boardHash = self.getHash(next_board)
-                value = 0 if self.states_value.get(next_boardHash) is None else self.states_value.get(next_boardHash)
+                self.next_boardHash = self.getHash(next_board)
+                value = 0 if self.states_value.get(self.next_boardHash) is None else self.states_value.get(self.next_boardHash)
                 if value >= value_max:
                     value_max = value
                     action = p
@@ -48,12 +48,21 @@ class ComputerPlayer:
         self.states.append(state)
 
     # at the end of game, backpropagate and update states value
-    def feedReward(self, reward):
+    def feedReward(self, reward, next_state):
+        max_next_state_val = -math.inf
+        for s in self.states:
+            if self.getHash(s) == self.next_boardHash:
+                value = 0 if self.states_value.get(self.next_boardHash) is None else self.states_value.get(self.next_boardHash)
+                max_next_state_val = max(max_next_state_val, value)
+
         for st in reversed(self.states):
             if self.states_value.get(st) is None:
                 self.states_value[st] = 0
-            self.states_value[st] += self.lr * (self.decay_gamma * reward - self.states_value[st])
-            reward = self.states_value[st]
+            self.states_value[st] += self.lr * (reward + self.decay_gamma * max_next_state_val - self.states_value[st])
+            # Update the value of maximum next state for the next state, every time.
+            max_next_state_val = max(self.states_value[s] for s in self.states if s[0] == st[0])  
+            reward = self.states_value[st]  # Update reward for the current state
+
 
     def reset(self):
         self.states = []
