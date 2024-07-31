@@ -32,14 +32,23 @@ st.train(roundNum)
 p1.savePolicy()
 
 # play with human
-p1 = ComputerPlayer("computer", exp_rate=0)
+"""p1 = ComputerPlayer("computer", exp_rate=0)
 p1.loadPolicy("policy_p1")
 p2 = HumanPlayer("human")
+st = State(p1, p2)"""
+
+# play with computer
+# they have trained with the same policy.
+p1 = ComputerPlayer("First Computer Player", exp_rate=0)
+p1.loadPolicy("policy_p1")
+p2 = ComputerPlayer("Second Computer Player", exp_rate=0)
+p2.loadPolicy("policy_p1")
 st = State(p1, p2)
+
 
 # Record the current time before executing the code
 start_time = time.time()
-st.play_against_human()
+st.play()
 
 # Record the current time after the game is over.
 end_time = time.time()

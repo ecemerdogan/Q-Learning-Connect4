@@ -63,7 +63,6 @@ class ComputerPlayer:
             max_next_state_val = max(self.states_value[s] for s in self.states if s[0] == st[0])  
             reward = self.states_value[st]  # Update reward for the current state
 
-
     def reset(self):
         self.states = []
 

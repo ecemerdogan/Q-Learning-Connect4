@@ -146,8 +146,8 @@ class State:
                     self.reset()
                     break
 
-    # play with human
-    def play_against_human(self):
+    # play with human/computer
+    def play(self):
         # Let's satrt with p1.
         self.current_player = self.p1
         while not self.isEnd:
@@ -156,7 +156,7 @@ class State:
                 self.number_of_move+=1
                 action = self.current_player.chooseAction(positions, self.board, self.playerSymbol)
             else:
-                action = self.current_player.chooseAction(positions)
+                action = self.current_player.chooseAction(positions,self.board,self.playerSymbol)
             
             self.updateState(action)
             self.showBoard()
@@ -173,7 +173,6 @@ class State:
                 return
             # Let's switch to the next player.
             self.current_player = self.p2 if self.current_player == self.p1 else self.p1
-
 
     def showBoard(self):
         # p1: x  p2: o
