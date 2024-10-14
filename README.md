@@ -1,6 +1,5 @@
-# Reinforcement-Learning
-This repository serves as a comprehensive collection of research and studies conducted within the framework of my graduation thesis focusing on Reinforcement Learning (RL). The primary objective of this project is to investigate various aspects of RL algorithms and methodologies, with a specific emphasis on their applications.
+# Reinforcement Learning and Its Application on a Board Game Connect4
 
-Code implementations and detailed explanations of the research conducted throughout the project are documented to provide insights into the theoretical foundations, experimental methodologies, and empirical findings derived from the investigation into RL techniques. The paperwork is located in the Jupyter Notebook which can be accessed in the "documentation" folder.
+This repository serves as an introductory project on the topic of Reinforcement Learning. It features the implementation of Q-learning applied to the board game Connect Four, as part of the 2023-2024 Spring thesis project. The game is played between a human and a computer, where the program takes any available move from the user as input. The computer's moves are based on a saved policy, trained using the Q-learning algorithm, which aims to maximize overall rewards.
 
-Overall, the essential aim of this GitHub repository is to share original research findings, analyses, and insights related to Reinforcement Learning (RL). By documenting the graduation thesis project's process and outcomes, the repository seeks to share knowledge, encourage collaboration, and inspire further research in RL.
+Note: A new version has been added to the repository. In this version, two computers play against each other, with both following the same policy, trained using the Q-learning algorithm.
